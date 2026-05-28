@@ -11,7 +11,6 @@ function Slider({
   value,
   min = 0,
   max = 100,
-  selectedColor,
   ...props
 }: React.ComponentProps<typeof SliderPrimitive.Root>) {
   const _values = React.useMemo(
@@ -21,7 +20,7 @@ function Slider({
         : Array.isArray(defaultValue)
           ? defaultValue
           : [min, max],
-    [value, defaultValue, min, max, selectedColor]
+    [value, defaultValue, min, max]
   )
 
   return (
