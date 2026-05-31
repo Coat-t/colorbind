@@ -50,7 +50,7 @@ function Slider({
         data-slot="slider-track"
         style={{ background: finalColor}}
         className='relative grow overflow-hidden\
-        rounded-lg data-horizontal:h-2 data-horizontal:w-full data-vertical:h-1/2 data-vertical:w-14'
+        rounded-none data-horizontal:h-2 data-horizontal:w-full data-vertical:h-1/2 data-vertical:w-10'
       >
         <SliderPrimitive.Range
           data-slot="slider-range"

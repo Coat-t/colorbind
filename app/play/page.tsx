@@ -18,20 +18,16 @@ export default function Page () {
   let brightnessFinalColor = `linear-gradient(to top, ${brightnessBottomColor.hex()}, ${brightnessTopColor.hex()}`
 
     return (
-    <div className="h-dvh gap-4 bg-background p-10 flex">
+    <div className="h-dvh gap-4 flex" style={{ backgroundColor: hsvColor.hex() }}>
       <div className='flex '>
-        <Slider orientation="vertical" max={360} defaultValue={[180]} onValueChange={(value) => setHue(value)} className="max-h-2/3"/>
-        <Slider orientation="vertical" max={100} defaultValue={[50]} onValueChange={(value) => setSaturation(value)} className="max-h-2/3" customColor={saturationFinalColor}/>
-        <Slider orientation="vertical" max={100} defaultValue={[50]} onValueChange={(value) => setBrightness(value)} className="max-h-2/3" customColor={brightnessFinalColor}/>
+        <Slider className="" orientation="vertical" max={360} defaultValue={[180]}
+         onValueChange={(value) => setHue(value)}/>
+        <Slider className="" orientation="vertical" max={100} step={0.3} defaultValue={[50]}
+         onValueChange={(value) => setSaturation(value)} customColor={saturationFinalColor}/>
+        <Slider className="" orientation="vertical" max={100} step={0.3} defaultValue={[50]}
+         onValueChange={(value) => setBrightness(value)} customColor={brightnessFinalColor}/>
       </div>
-      <div className="fixed left-10 top-10 p-4 bg-muted/20 ">
-        <Link href="/">Go back</Link>
-        <div className="h-10 w-10"
-        style={{ backgroundColor: hsvColor.hex() }}>
-          {hue} {saturation}
-        </div>
-      </div>
-
+      <div className='fixed bottom-1 right-2 font-mono font-bold text-white/50 text-sm'>Colorbind.xyz</div>
     </div>
     )
 }
