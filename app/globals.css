@@ -6,6 +6,10 @@
 @theme {
   --selected-color: var(--selected-color);
   --rainbow-color: var(--rainbow-color);
+  --selected-hue: var(--selected-hue);
+  --selected-saturation: var(--selected-saturation);
+  --selected-value: var(--selected-value);
+
 }
 @theme inline {
   --color-background: var(--background);

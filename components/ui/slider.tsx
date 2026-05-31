@@ -38,8 +38,7 @@ function Slider({
     >
       <SliderPrimitive.Track
         data-slot="slider-track"
-        // style={{ '--selected-color': selectedColor } as React.CSSProperties}
-        className="relative grow overflow-hidden bg-[linear-gradient(to_bottom,hsl(0,100%,50%),hsl(60,100%,50%),hsl(120,100%,50%),hsl(180,100%,50%),hsl(240,100%,50%),hsl(300,100%,50%),hsl(360,100%,50%))] rounded-full bg-(--selected-color) data-horizontal:h-2 data-horizontal:w-full data-vertical:h-1/2 data-vertical:w-14"
+        className="relative grow overflow-hidden bg-[linear-gradient(to_top,hsl(0,100%,50%),hsl(60,100%,50%),hsl(120,100%,50%),hsl(180,100%,50%),hsl(240,100%,50%),hsl(300,100%,50%),hsl(360,100%,50%))] rounded-full  data-horizontal:h-2 data-horizontal:w-full data-vertical:h-1/2 data-vertical:w-14"
       >
         <SliderPrimitive.Range
           data-slot="slider-range"
@@ -50,7 +49,7 @@ function Slider({
         <SliderPrimitive.Thumb
           data-slot="slider-thumb"
           key={index}
-          className="block h-4 w-4 shrink-0 rounded-full bg-white shadow-sm ring-1 ring-black/10 transition-[color,box-shadow,background-color] select-none not-dark:bg-clip-padding hover:ring-4 hover:ring-ring/30 focus-visible:ring-4 focus-visible:ring-ring/30 focus-visible:outline-hidden disabled:pointer-events-none disabled:opacity-50 data-vertical:h-6 data-vertical:w-6"
+          className="block h-4 w-4 shrink-0 rounded-full bg-white select-none ring-0 outline-10 outline-white data-vertical:h-1 data-vertical:w-1"
         />
       ))}
     </SliderPrimitive.Root>
