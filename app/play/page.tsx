@@ -1,7 +1,7 @@
 'use client';
 
 import chroma from "chroma-js";
-import Color from 'color';
+import Color, { ColorInstance } from 'color';
 import Link from "next/link";
 import { Slider } from "@/components/ui/slider"
 import { useState, useEffect } from "react";
@@ -9,6 +9,11 @@ import { Button } from "@/components/ui/button";
 import { Goal } from "lucide-react";
 
 type Screen = 'MEMORY' | 'GUESS' | 'DIFF' | 'RESULTS'
+
+
+// user guess judging
+const midpoint = 25; // where the 50% score happens
+const steepness = 0.12; // lower is more forgiving
 
 let colorGuesses = [];
 let colorTargets = [];
@@ -21,8 +26,11 @@ export default function Page () {
   const [saturation, setSaturation] = useState([50]);
   const [brightness, setBrightness] = useState([50]);
   const [randomColor, setRandomColor] = useState('');
+  // accuracy & grading 
+  const [colorAcc, setColorAcc] = useState('0%');
+  const [gradeLabel, setGradeLabel] = useState('');
   // slider colors
-  let hsvColor = Color.hsv(Number(hue), Number(saturation), Number(brightness))
+  let userColor = Color.hsv(Number(hue), Number(saturation), Number(brightness)).hex()
   let saturationFinalColor = `linear-gradient(to top, ${Color.hsv(Number(hue), 0, Number(brightness)).hex()}, ${Color.hsv(Number(hue), 100, Number(brightness)).hex()}`
   let brightnessFinalColor = `linear-gradient(to top, ${Color.hsv(Number(hue), Number(saturation), 0).hex()}, ${Color.hsv(Number(hue), Number(saturation), 100).hex()}`
   // memorization timer
@@ -49,6 +57,19 @@ export default function Page () {
     else if (currentScreen === 'GUESS') setCurrentScreen('DIFF')
     else if (currentScreen === 'DIFF') setCurrentScreen('RESULTS')
   }
+
+  function calculateColorAcc() {
+    const deltaE = chroma.deltaE(userColor, randomColor)
+    const similarity = Math.exp(-0.05 * deltaE) * 100;
+    const score = 100 / (1 + Math.exp(steepness * (deltaE - midpoint)));
+    setColorAcc(Math.round(score) + "%");
+    let label = "Different";
+    if (score <= 80) label = "Similar";
+    else if (score <= 87) label = "Almost got it";
+    else if (score <= 97) label = "Nearly Identical";
+    else if (score <= 100) label = "Spot on!";
+    setGradeLabel(label);
+  }
   // screens
   const screens = {
     MEMORY: (
@@ -57,7 +78,7 @@ export default function Page () {
       </div>
     ),
     GUESS: (
-      <div className="h-full w-full gap-4 flex flex-row relative" style={{ backgroundColor: hsvColor.hex() }}>
+      <div className="h-full w-full gap-4 flex flex-row relative" style={{ backgroundColor: userColor }}>
         <div className='flex'>
           <Slider orientation="vertical" max={360} defaultValue={[180]}
           onValueChange={(value) => setHue(value)}/>
@@ -70,7 +91,16 @@ export default function Page () {
       </div>
     ),
     DIFF: (
-      <div>Difference screen</div>
+      <div className="h-full w-full flex flex-col" >
+        <div className="h-full w-full py-2 px-4 flex flex-col-reverse" style={{ backgroundColor: randomColor }}>
+          <p className="font-mono font-bold text-white/80">TARGET COLOR</p>
+        </div>
+        <div className="h-full w-full py-2 px-4" style={{ backgroundColor: userColor }}>
+          <p className="font-mono font-bold text-white/80">YOUR COLOR</p>
+          <p className="font-mono font-bold text-white/80">Accuracy: {colorAcc}</p>
+          <p className="font-mono font-bold text-white/80">{gradeLabel}</p>
+        </div>
+      </div>
     ),
     RESULTS: (
       <div>Results screen</div>
@@ -78,6 +108,7 @@ export default function Page () {
   };
 
   function handleSubmit () {
+    calculateColorAcc();
     handleNextScreen();
   }
 
