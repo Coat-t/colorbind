@@ -1,12 +1,13 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import chroma from "chroma-js";
 import Color, { ColorInstance } from 'color';
 import Link from "next/link";
 import { Slider } from "@/components/ui/slider"
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Goal } from "lucide-react";
+import { Goal, ArrowBigRight, RotateCcw } from "lucide-react";
 
 type Screen = 'MEMORY' | 'GUESS' | 'DIFF' | 'RESULTS'
 
@@ -14,20 +15,23 @@ type Screen = 'MEMORY' | 'GUESS' | 'DIFF' | 'RESULTS'
 // user guess judging
 const midpoint = 25; // where the 50% score happens
 const steepness = 0.12; // lower is more forgiving
-
-let colorGuesses = [];
-let colorTargets = [];
+const gamesAmount = 3;
 
 export default function Page () {
+  const router = useRouter();
   // game state
   const [currentScreen, setCurrentScreen] = useState<Screen>('MEMORY') // MEMORY, GUESS, DIFF, RESULTS
+  // history
+  const [colorGuesses, setColorGuesses] = useState<string[]>([]);
+  const [colorTargets, setColorTargets] = useState<string[]>([]);
+  const [accHistory, setAccHistory] = useState<number[]>([]);
   // colors
   const [hue, setHue] = useState([180]);
   const [saturation, setSaturation] = useState([50]);
   const [brightness, setBrightness] = useState([50]);
   const [randomColor, setRandomColor] = useState('');
   // accuracy & grading 
-  const [colorAcc, setColorAcc] = useState('0%');
+  const [colorAcc, setColorAcc] = useState<any>();
   const [gradeLabel, setGradeLabel] = useState('');
   // slider colors
   let userColor = Color.hsv(Number(hue), Number(saturation), Number(brightness)).hex()
@@ -36,6 +40,8 @@ export default function Page () {
   // memorization timer
   const [timeLeft, setTimeLeft] = useState(5000); // 5000ms
   useEffect(() => {
+    if (currentScreen != 'MEMORY') return;
+    
     const startTime = Date.now();
     const duration = 5000;
     setRandomColor(chroma.random().hex())
@@ -50,21 +56,40 @@ export default function Page () {
       }
     }, 10); // 10ms update
     return () => clearInterval(timerId);
-  }, []);
+  }, [currentScreen]);
+
+  function addColorGuess() {
+    setColorGuesses((prevColorGuesses) => {
+      const updatedColorGuesses = [...prevColorGuesses, Color.hsv(Number(hue), Number(saturation), Number(brightness)).hex()];
+      return updatedColorGuesses;
+    });
+    setAccHistory((prevAccHistory) => {
+      const updatedAccHistory = [...prevAccHistory, colorAcc];
+      return updatedAccHistory;
+    });
+    console.log(accHistory, colorGuesses)
+  }
 
   function handleNextScreen () {
     if (currentScreen === 'MEMORY') setCurrentScreen('GUESS')
     else if (currentScreen === 'GUESS') setCurrentScreen('DIFF')
-    else if (currentScreen === 'DIFF') setCurrentScreen('RESULTS')
+    else if (currentScreen === 'DIFF') {
+      if (colorGuesses.length <= gamesAmount - 1) {
+        setCurrentScreen('MEMORY')
+        setTimeLeft(5000)
+      } else {
+        setCurrentScreen('RESULTS')
+      }
+    }
   }
 
   function calculateColorAcc() {
-    const deltaE = chroma.deltaE(userColor, randomColor)
-    const similarity = Math.exp(-0.05 * deltaE) * 100;
+    const deltaE = chroma.deltaE(Color.hsv(Number(hue), Number(saturation), Number(brightness)).hex(), randomColor)
     const score = 100 / (1 + Math.exp(steepness * (deltaE - midpoint)));
-    setColorAcc(Math.round(score) + "%");
+    setColorAcc(Math.round(score));
     let label = "Different";
-    if (score <= 80) label = "Similar";
+    if (score <= 67) label = "Clearly a miss";
+    else if (score <= 77) label = "Similar";
     else if (score <= 87) label = "Almost got it";
     else if (score <= 97) label = "Nearly Identical";
     else if (score <= 100) label = "Spot on!";
@@ -88,6 +113,7 @@ export default function Page () {
           onValueChange={(value) => setBrightness(value)} customColor={brightnessFinalColor}/>
         </div>
         <Button className="w-12 h-12 overflow-visible absolute bottom-4 right-4" onClick={handleSubmit}><Goal/></Button>
+        <p className="absolute bottom-18 right-4">{colorGuesses.length + 1}/{gamesAmount}</p>
       </div>
     ),
     DIFF: (
@@ -97,21 +123,39 @@ export default function Page () {
         </div>
         <div className="h-full w-full py-2 px-4" style={{ backgroundColor: userColor }}>
           <p className="font-mono font-bold text-white/80">YOUR COLOR</p>
-          <p className="font-mono font-bold text-white/80">Accuracy: {colorAcc}</p>
+          <p className="font-mono font-bold text-white/80">Accuracy: {colorAcc}%</p>
           <p className="font-mono font-bold text-white/80">{gradeLabel}</p>
         </div>
+        <Button className="w-12 h-12 overflow-visible absolute bottom-4 right-4" onClick={handleProceed}><ArrowBigRight /></Button>
       </div>
     ),
     RESULTS: (
-      <div>Results screen</div>
+      <div className="h-full w-full flex z-10 p-4 bg-background">
+        <p>Results</p>
+          <ul>
+            {accHistory.map((accuracy, index) => (
+              <li key={index}>{accuracy}</li>
+            ))}
+          </ul>
+        <Button className="w-12 h-12 overflow-visible absolute bottom-4 right-4" onClick={resetGame}><RotateCcw /></Button>
+      </div>
     )
   };
 
   function handleSubmit () {
     calculateColorAcc();
+    addColorGuess();
     handleNextScreen();
   }
-
+  function handleProceed () {
+    handleNextScreen();
+  }
+  function resetGame () {
+    setCurrentScreen('MEMORY');
+    setTimeLeft(5000)
+    setColorGuesses([]);
+    setAccHistory([]);
+  }
   return (
     <>
     <div className="h-dvh w-screen">
