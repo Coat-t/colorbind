@@ -13,8 +13,8 @@ type Screen = 'MEMORY' | 'GUESS' | 'DIFF' | 'RESULTS'
 
 
 // user guess judging
-const midpoint = 25; // where the 50% score happens
-const steepness = 0.12; // lower is more forgiving
+const midpoint = 13.7; // where the 50% score happens
+const steepness = 0.39; // lower is more forgiving
 const gamesAmount = 3;
 
 export default function Page () {
@@ -69,6 +69,12 @@ export default function Page () {
     });
   }
 
+  function resetSliders() {
+    setHue([180]);
+    setSaturation([50]);
+    setBrightness([50]);
+  }
+
   function handleNextScreen () {
     if (currentScreen === 'MEMORY') setCurrentScreen('GUESS')
     else if (currentScreen === 'GUESS') setCurrentScreen('DIFF')
@@ -76,6 +82,7 @@ export default function Page () {
       if (colorGuesses.length <= gamesAmount - 1) {
         setCurrentScreen('MEMORY')
         setTimeLeft(5000)
+        resetSliders();
       } else {
         setCurrentScreen('RESULTS')
       }
@@ -105,11 +112,11 @@ export default function Page () {
     GUESS: (
       <div className="h-full w-full gap-4 flex flex-row relative" style={{ backgroundColor: userColor }}>
         <div className='flex'>
-          <Slider orientation="vertical" max={360} defaultValue={[180]}
+          <Slider orientation="vertical" max={360} value={hue}
           onValueChange={(value) => setHue(value)}/>
-          <Slider orientation="vertical" max={100} step={0.3} defaultValue={[50]}
+          <Slider orientation="vertical" max={100} step={0.3} value={saturation}
           onValueChange={(value) => setSaturation(value)} customColor={saturationFinalColor}/>
-          <Slider orientation="vertical" max={100} step={0.3} defaultValue={[50]}
+          <Slider orientation="vertical" max={100} step={0.3} value={brightness}
           onValueChange={(value) => setBrightness(value)} customColor={brightnessFinalColor}/>
         </div>
         <Button className="w-12 h-12 overflow-visible absolute bottom-4 right-4" onClick={handleSubmit}><Goal/></Button>
@@ -155,6 +162,7 @@ export default function Page () {
     setTimeLeft(5000)
     setColorGuesses([]);
     setAccHistory([]);
+    resetSliders();
   }
   return (
     <>
