@@ -1,6 +1,5 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
 import chroma from "chroma-js";
 import Color, { ColorInstance } from 'color';
 import Link from "next/link";
@@ -18,7 +17,6 @@ const steepness = 0.39; // lower is more forgiving
 const gamesAmount = 3;
 
 export default function Page () {
-  const router = useRouter();
   // game state
   const [currentScreen, setCurrentScreen] = useState<Screen>('MEMORY') // MEMORY, GUESS, DIFF, RESULTS
   // history
@@ -62,6 +60,10 @@ export default function Page () {
     setColorGuesses((prevColorGuesses) => {
       const updatedColorGuesses = [...prevColorGuesses, Color.hsv(Number(hue), Number(saturation), Number(brightness)).hex()];
       return updatedColorGuesses;
+    });
+    setColorTargets((prevColorTargets) => {
+      const updatedColorTargets = [...prevColorTargets, randomColor];
+      return updatedColorTargets;
     });
     setAccHistory((prevAccHistory) => {
       const updatedAccHistory = [...prevAccHistory, score];
@@ -137,14 +139,35 @@ export default function Page () {
       </div>
     ),
     RESULTS: (
-      <div className="h-full w-full flex z-10 p-4 bg-background">
-        <p>Results</p>
-          <ul>
-            {accHistory.map((accuracy, index) => (
-              <li key={index}>{accuracy}</li>
-            ))}
-          </ul>
+      <div className="h-full w-full z-10 p-4 bg-background">
+        <p className="font-bold font-mono mb-10">Results</p>
+        
         <Button className="w-12 h-12 overflow-visible absolute bottom-4 right-4" onClick={resetGame}><RotateCcw /></Button>
+        <div className="m-2 md:mx-10 flex">
+          <p className="flex-1 text-xs">YOUR COLORS</p>
+          <p className="text-right text-xs">TARGET COLORS</p>
+        </div>
+        
+        <div className="flex flex-row m-2 md:mx-10">
+          <div className="flex flex-1 flex-col gap-5">
+            {colorGuesses.map((guess, guessIndex) => (
+                <div className='h-10 w-full flex rounded-l-md items-center pl-4' style={{background: guess}} key={guessIndex}>
+                  {accHistory.map((accuracy, accIndex) => (
+                    <p key={accIndex} className="font-medium font-mono text-shadow-lg">
+                      {guessIndex === accIndex && `${accuracy}%`}
+                    </p>
+                  ))}
+                </div>
+            ))}
+          </div>
+          <div className="flex flex-1 flex-col gap-5">
+            {colorTargets.map((target, index) => (
+                <div className='h-10 w-full rounded-r-md' style={{background: target}} key={index}>
+                </div>
+            ))}
+          </div>
+
+        </div>
       </div>
     )
   };
