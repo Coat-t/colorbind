@@ -23,7 +23,7 @@ export default function Page () {
   const [currentScreen, setCurrentScreen] = useState<Screen>('MEMORY') // MEMORY, GUESS, DIFF, RESULTS
   // history
   const [colorGuesses, setColorGuesses] = useState<string[]>([]);
-  const [colorTargets, setColorTargets] = useState<string[]>([]);
+  const [colorTargets, setColorTargets] = useState<string[]>([]); // unused for now
   const [accHistory, setAccHistory] = useState<number[]>([]);
   // colors
   const [hue, setHue] = useState([180]);
@@ -31,7 +31,7 @@ export default function Page () {
   const [brightness, setBrightness] = useState([50]);
   const [randomColor, setRandomColor] = useState('');
   // accuracy & grading 
-  const [colorAcc, setColorAcc] = useState<any>();
+  const [colorAcc, setColorAcc] = useState<number>(0);
   const [gradeLabel, setGradeLabel] = useState('');
   // slider colors
   let userColor = Color.hsv(Number(hue), Number(saturation), Number(brightness)).hex()
@@ -58,16 +58,15 @@ export default function Page () {
     return () => clearInterval(timerId);
   }, [currentScreen]);
 
-  function addColorGuess() {
+  function addColorGuess(score: number) {
     setColorGuesses((prevColorGuesses) => {
       const updatedColorGuesses = [...prevColorGuesses, Color.hsv(Number(hue), Number(saturation), Number(brightness)).hex()];
       return updatedColorGuesses;
     });
     setAccHistory((prevAccHistory) => {
-      const updatedAccHistory = [...prevAccHistory, colorAcc];
+      const updatedAccHistory = [...prevAccHistory, score];
       return updatedAccHistory;
     });
-    console.log(accHistory, colorGuesses)
   }
 
   function handleNextScreen () {
@@ -85,21 +84,22 @@ export default function Page () {
 
   function calculateColorAcc() {
     const deltaE = chroma.deltaE(Color.hsv(Number(hue), Number(saturation), Number(brightness)).hex(), randomColor)
-    const score = 100 / (1 + Math.exp(steepness * (deltaE - midpoint)));
-    setColorAcc(Math.round(score));
+    const score = Math.round(100 / (1 + Math.exp(steepness * (deltaE - midpoint))));
+    setColorAcc(score);
     let label = "Different";
-    if (score <= 67) label = "Clearly a miss";
-    else if (score <= 77) label = "Similar";
-    else if (score <= 87) label = "Almost got it";
-    else if (score <= 97) label = "Nearly Identical";
+    if (score <= 65) label = "Clearly a miss";
+    else if (score <= 75) label = "Similar";
+    else if (score <= 85) label = "Almost got it";
+    else if (score <= 95) label = "Nearly Identical";
     else if (score <= 100) label = "Spot on!";
     setGradeLabel(label);
+    return score;
   }
   // screens
   const screens = {
     MEMORY: (
       <div className="h-full w-full flex z-10" style={{ backgroundColor: randomColor }}>
-        <p className="fixed right-2 top-2 font-bold text-shadow-lg text-black/80 dark:text-white/80 text-xl">{(timeLeft / 1000).toFixed(2)}</p>
+        <p className="fixed right-2 top-2 font-bold font-mono text-shadow-lg text-black/80 dark:text-white/80 text-xl">{(timeLeft / 1000).toFixed(2)}</p>
       </div>
     ),
     GUESS: (
@@ -143,8 +143,8 @@ export default function Page () {
   };
 
   function handleSubmit () {
-    calculateColorAcc();
-    addColorGuess();
+    const score = calculateColorAcc();
+    addColorGuess(score);
     handleNextScreen();
   }
   function handleProceed () {
