@@ -184,6 +184,7 @@ export default function Page () {
     setCurrentScreen('MEMORY');
     setTimeLeft(5000)
     setColorGuesses([]);
+    setColorTargets([]);
     setAccHistory([]);
     resetSliders();
   }
