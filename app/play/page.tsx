@@ -7,6 +7,7 @@ import { Slider } from "@/components/ui/slider"
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Goal, ArrowBigRight, RotateCcw } from "lucide-react";
+import { motion } from "framer-motion";
 
 type Screen = 'MEMORY' | 'GUESS' | 'DIFF' | 'RESULTS'
 
@@ -19,6 +20,7 @@ const gamesAmount = 3;
 export default function Page () {
   // game state
   const [currentScreen, setCurrentScreen] = useState<Screen>('MEMORY') // MEMORY, GUESS, DIFF, RESULTS
+  const [isCardFlipeed, setIsCardFlipped] = useState(false);
   // history
   const [colorGuesses, setColorGuesses] = useState<string[]>([]);
   const [colorTargets, setColorTargets] = useState<string[]>([]); // unused for now
@@ -40,6 +42,7 @@ export default function Page () {
   useEffect(() => {
     if (currentScreen != 'MEMORY') return;
     
+    setIsCardFlipped(true);
     const startTime = Date.now();
     const duration = 5000;
     setRandomColor(chroma.random().hex())
@@ -107,7 +110,19 @@ export default function Page () {
   // screens
   const screens = {
     MEMORY: (
-      <div className="h-full w-full flex z-10" style={{ backgroundColor: randomColor }}>
+      <div className="h-full w-full flex items-center justify-center">
+        <div className="w-40 h-60 perspective-[1000px]">
+          <motion.div className="h-full w-full relative transform-3d"
+          animate={{ rotateY: isCardFlipeed ? 180 : 0 }}
+          transition={{ duration: 0.6, ease: "easeInOut" }}>
+            <div className="absolute inset-0 w-full h-full border-4 border-neutral-900 rounded-lg backface-hidden  transform-[rotateY(180deg)]" style={{ backgroundColor: randomColor }}>
+              <p>{randomColor}</p>
+            </div>
+            <div className="absolute inset-0 w-full h-full border-4 border-neutral-900 rounded-lg backface-hidden bg-neutral-950">
+              <p>{randomColor}</p>
+            </div>
+          </motion.div>
+        </div>
         <p className="fixed right-2 top-2 font-bold font-mono text-shadow-lg text-black/80 dark:text-white/80 text-xl">{(timeLeft / 1000).toFixed(2)}</p>
       </div>
     ),
