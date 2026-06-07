@@ -148,25 +148,21 @@ export default function Page () {
           <p className="text-right text-xs">TARGET COLORS</p>
         </div>
         
-        <div className="flex flex-row m-2 md:mx-10">
-          <div className="flex flex-1 flex-col gap-5">
-            {colorGuesses.map((guess, guessIndex) => (
-                <div className='h-10 w-full flex rounded-l-md items-center pl-4' style={{background: guess}} key={guessIndex}>
-                  {accHistory.map((accuracy, accIndex) => (
-                    <p key={accIndex} className="font-medium font-mono text-shadow-lg">
-                      {guessIndex === accIndex && `${accuracy}%`}
-                    </p>
-                  ))}
-                </div>
-            ))}
-          </div>
-          <div className="flex flex-1 flex-col gap-5">
-            {colorTargets.map((target, index) => (
-                <div className='h-10 w-full rounded-r-md' style={{background: target}} key={index}>
-                </div>
-            ))}
-          </div>
-
+        <div className="flex flex-col m-2 md:mx-10 gap-4">
+          {colorGuesses.map((guess, i) => (
+            <div key={i} className="flex flex-1">
+              <div
+                className="h-10 flex-1 flex items-center pl-4 rounded-l-md font-medium font-mono text-shadow-lg"
+                style={{ background: guess }}
+              >
+                {accHistory[i]}%
+              </div>
+              <div
+                className="h-10 flex-1 rounded-r-md"
+                style={{ background: colorTargets[i] }}
+              />
+            </div>
+          ))}
         </div>
       </div>
     )
