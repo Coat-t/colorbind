@@ -16,7 +16,26 @@ type Screen = 'MEMORY' | 'GUESS' | 'DIFF' | 'RESULTS'
 const midpoint = 13.7; // where the 50% score happens
 const steepness = 0.39; // lower is more forgiving
 const gamesAmount = 3;
+const memorizeDuration = 5000; // ms to memorize
 
+const colorCardEnter : any = {
+    hidden: { 
+      x: "100vw",
+      opacity: 0,
+      scale: 0.8
+    },
+    visible: { 
+      x: 0,
+      opacity: 1,
+      scale: 1,
+      transition: { 
+        type: "spring", 
+        stiffness: 80, 
+        damping: 25,
+        restDelta: 0.001
+      }
+    }
+};
 export default function Page () {
   // game state
   const [currentScreen, setCurrentScreen] = useState<Screen>('MEMORY') // MEMORY, GUESS, DIFF, RESULTS
@@ -44,7 +63,7 @@ export default function Page () {
     
     setIsCardFlipped(true);
     const startTime = Date.now();
-    const duration = 5000;
+    const duration = memorizeDuration;
     setRandomColor(chroma.random().hex())
     const timerId = setInterval(() => {
       const now = Date.now();
@@ -110,19 +129,21 @@ export default function Page () {
   // screens
   const screens = {
     MEMORY: (
-      <div className="h-full w-full flex items-center justify-center">
-        <div className="w-40 h-60 perspective-[1000px]">
+      <div className="h-full w-full flex items-center justify-center overflow-hidden">
+        <motion.div
+          className="w-40 h-60 perspective-[1000px]"
+          variants={colorCardEnter}
+          initial="hidden"
+          animate="visible">
           <motion.div className="h-full w-full relative transform-3d"
           animate={{ rotateY: isCardFlipeed ? 180 : 0 }}
           transition={{ duration: 0.6, ease: "easeInOut" }}>
             <div className="absolute inset-0 w-full h-full border-4 border-neutral-900 rounded-lg backface-hidden  transform-[rotateY(180deg)]" style={{ backgroundColor: randomColor }}>
-              <p>{randomColor}</p>
             </div>
             <div className="absolute inset-0 w-full h-full border-4 border-neutral-900 rounded-lg backface-hidden bg-neutral-950">
-              <p>{randomColor}</p>
             </div>
           </motion.div>
-        </div>
+        </motion.div>
         <p className="fixed right-2 top-2 font-bold font-mono text-shadow-lg text-black/80 dark:text-white/80 text-xl">{(timeLeft / 1000).toFixed(2)}</p>
       </div>
     ),
@@ -193,7 +214,7 @@ export default function Page () {
   }
   function resetGame () {
     setCurrentScreen('MEMORY');
-    setTimeLeft(5000)
+    setTimeLeft(memorizeDuration)
     setColorGuesses([]);
     setColorTargets([]);
     setAccHistory([]);
