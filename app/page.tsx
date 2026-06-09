@@ -15,21 +15,41 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { createClient } from '@supabase/supabase-js'
+import { toast } from "sonner"
 
 
+const supabase = createClient('https://yirxbwtyoimeeoguvtih.supabase.co', 'sb_publishable_Lw354M7HaqqTaJiROB7J3g_a4Vt2kvt')
 
 export default function Home() {
   const [nickname, setNickname] = useState('');
 
-  //const supabase = createClient('https://yirxbwtyoimeeoguvtih.supabase.co', 'sb_publishable_Lw354M7HaqqTaJiROB7J3g_a4Vt2kvt')
-
   const handleNameInputChange = (event:any) => {
     setNickname(event.target.value); 
   };
-  function handleSignIn () {
+
+  async function handleSignIn () {
     console.log(nickname)
+    const { data, error } = await supabase.auth.signInAnonymously({
+      options: {
+        data: {
+          nickname: nickname
+        }
+      }
+    })
+    if (error) {
+      console.error("Sign in failed.", error.message)
+      toast("Failed to sign in.")
+
+      return;
+    }
+
+    console.log("Login succesful! User data:", data)
+    // do something
+    toast("Signed in successfully.")
   }
+
   return (
     <>
     <div className="h-dvh flex flex-col items-left justify-center gap-4 bg-background p-10">
