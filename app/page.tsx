@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from "react";
 import { Play, Users, Globe } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button"
@@ -13,46 +14,51 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
+import { toast } from "sonner"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { useEffect, useState } from "react";
+
 import { createClient } from '@supabase/supabase-js'
-import { toast } from "sonner"
-
-
+import { loginAnonymously } from '@/app/actions/auth'
 const supabase = createClient('https://yirxbwtyoimeeoguvtih.supabase.co', 'sb_publishable_Lw354M7HaqqTaJiROB7J3g_a4Vt2kvt')
 
+
 export default function Home() {
-  const [nickname, setNickname] = useState('');
+  const [user, setUser] = useState<any>(null)
+  const [inputNickname, setInputNickname] = useState('')
+  const [loading, setLoading] = useState(true)
 
   const handleNameInputChange = (event:any) => {
-    setNickname(event.target.value); 
+    setInputNickname(event.target.value); 
   };
 
-  async function handleSignIn () {
-    console.log(nickname)
-    const { data, error } = await supabase.auth.signInAnonymously({
-      options: {
-        data: {
-          nickname: nickname
-        }
-      }
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setUser(user)
+      setLoading(false)
     })
-    if (error) {
-      console.error("Sign in failed.", error.message)
-      toast("Failed to sign in.")
 
-      return;
-    }
+    // 2. Listen for auth changes (sign in, sign out, etc.)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null)
+    })
 
-    console.log("Login succesful! User data:", data)
-    // do something
-    toast("Signed in successfully.")
+    return () => subscription.unsubscribe()
+  }, [])
+
+  const handleSignIn = async (e: any) => {
+    e.preventDefault()
+    if (!inputNickname.trim()) return
+    
+    setLoading(true)
+    const loginResponse = await loginAnonymously(inputNickname)
+
   }
 
   return (
     <>
     <div className="h-dvh flex flex-col items-left justify-center gap-4 bg-background p-10">
+      <p className="text-xl">User: {user?.user_metadata?.nickname || 'Guest'}</p>
       <p className="font-bold font-mono text-xl md:text-2xl">Colorbind.xyz</p>
       <Button className="w-20 h-20 rounded-full" asChild>
         <Link href="/play" className="flex items-center justify-center">
@@ -80,7 +86,7 @@ export default function Home() {
             <Input
               id="link"
               placeholder="Nickname"
-              value={nickname}
+              value={inputNickname}
               onChange={handleNameInputChange}
             />
           </div>
